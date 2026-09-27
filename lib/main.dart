@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'add_transaction_page.dart';
+import 'edit_transaction_page.dart';
 
 void main() {
   runApp(const ExpenseManagerApp());
@@ -117,7 +119,12 @@ class WelcomePage extends StatelessWidget {
                     height: 50,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Sau này xử lý chuyển màn hình ở đây
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const EditTransactionPage(),
+                          ),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
