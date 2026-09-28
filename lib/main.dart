@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'add_transaction_page.dart';
 import 'edit_transaction_page.dart';
+import 'home_page.dart';
 
 void main() {
   runApp(const ExpenseManagerApp());
@@ -122,7 +123,7 @@ class WelcomePage extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const EditTransactionPage(),
+                            builder: (context) => const HomePage(),
                           ),
                         );
                       },
