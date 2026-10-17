@@ -225,6 +225,7 @@ class _EditTransactionPageState
                     ),
                   ),
                 ),
+
                 const SizedBox(width: 10),
 
                 // THU

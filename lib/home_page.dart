@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'app_bottom_navigation.dart';
 import 'add_transaction_page.dart';
 import 'edit_transaction_page.dart';
 import 'database/database_helper.dart';
-
+import 'statistics_page.dart';
+import 'profile_page.dart';
+import 'transactions_page.dart';
+import 'app_route_observer.dart';
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -10,7 +14,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with RouteAware {
   double totalIncome = 0;
   double totalExpense = 0;
   double balance = 0;
@@ -18,6 +22,32 @@ class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> transactions = [];
 
   bool isLoading = true;
+  PageRoute<dynamic>? _subscribedRoute;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute<dynamic> && route != _subscribedRoute) {
+      if (_subscribedRoute != null) {
+        appRouteObserver.unsubscribe(this);
+      }
+      _subscribedRoute = route;
+      appRouteObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void didPopNext() {
+    // Khi quay lại Home, đồng bộ lại tổng thu, tổng chi, số dư và danh sách.
+    loadData();
+  }
+
+  @override
+  void dispose() {
+    appRouteObserver.unsubscribe(this);
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -125,6 +155,7 @@ class _HomePageState extends State<HomePage> {
 
       case 'Giải trí':
         return Icons.movie;
+
       default:
         return Icons.category;
     }
@@ -548,15 +579,22 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
 
-                    Text(
-                      'Xem tất cả (${transactions.length})',
-                      style:
-                      const TextStyle(
-                        fontSize: 12,
-                        fontWeight:
-                        FontWeight.bold,
-                        color: Color(
-                          0xFF2878E8,
+                    GestureDetector(
+                      onTap: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const TransactionsPage(),
+                          ),
+                        );
+                        await loadData();
+                      },
+                      child: Text(
+                        'Xem tất cả (${transactions.length})',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2878E8),
                         ),
                       ),
                     ),
@@ -665,37 +703,40 @@ class _HomePageState extends State<HomePage> {
       // ==================================================
       // MENU DƯỚI
       // ==================================================
-      bottomNavigationBar:
-      BottomNavigationBar(
+      bottomNavigationBar: AppBottomNavigationBar(
         currentIndex: 0,
-        type:
-        BottomNavigationBarType.fixed,
-        selectedItemColor:
-        const Color(0xFF2878E8),
-        unselectedItemColor:
-        Colors.grey,
-        showUnselectedLabels: true,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Trang chủ',
-          ),
-          BottomNavigationBarItem(
-            icon:
-            Icon(Icons.receipt_long),
-            label: 'Giao dịch',
-          ),
-          BottomNavigationBarItem(
-            icon:
-            Icon(Icons.pie_chart_outline),
-            label: 'Thống kê',
-          ),
-        ],
+        onTap: (index) async {
+          if (index == 0) return;
+
+          if (index == 1) {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const TransactionsPage(),
+              ),
+            );
+            await loadData();
+          } else if (index == 2) {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const StatisticsPage(),
+              ),
+            );
+            await loadData();
+          } else if (index == 3) {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ProfilePage(),
+              ),
+            );
+          }
+        },
       ),
     );
   }
 
-  // ==================================================
   // Ô THU NHẬP / CHI TIÊU
   // ==================================================
   Widget summaryCard({
@@ -749,6 +790,7 @@ class _HomePageState extends State<HomePage> {
                 ),
 
                 const SizedBox(height: 4),
+
                 Text(
                   money,
                   style: TextStyle(
@@ -866,6 +908,7 @@ class _HomePageState extends State<HomePage> {
                 ),
 
                 const SizedBox(height: 3),
+
                 Text(
                   category,
                   style:
